@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Card from '../components/Card';
+import ChatContainer from '../components/ChatContainer';
 
 const Dashboard = () => {
     const db = [
@@ -32,7 +33,8 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard">
-            <div className="swiper-container">
+            <ChatContainer />
+            <div className="swipe-container">
                 <div className="card-container">
                     {db.map(character => (
                         <Card
@@ -46,6 +48,10 @@ const Dashboard = () => {
                             onCardLeftScreen={() => outOfFrame(character.name)}
                         />
                     ))}
+
+                    <div className="swipe-info">
+                        {lastDirection ? <p>Swiped {lastDirection}</p> : <p/>}
+                    </div>
                 </div>
             </div>
         </div>
