@@ -32,7 +32,7 @@ app.post('/signup', async(req, res) => {
         const db = client.db('app-data')
         const users = db.collection('users')
 
-        const existingUser = await users.findOne({email})
+        const existingUser = await users.findOne({ email })
         if (existingUser) {
             return res.status(409).send('username already exist')
         }
@@ -47,10 +47,40 @@ app.post('/signup', async(req, res) => {
 
         const newUser = await users.insertOne(data)
         const token = jwt.sign(newUser, sanitizedEmail, 
-            {expiresIn: 60 * 24
+            {expiresIn: 60 * 12
         })
 
         res.status(201).json({ token, user_id: uniqueUserId})
+
+    } catch (error) {
+        console.log(error)
+    } finally {
+        await client.close()
+    }
+})
+
+// Log in 
+app.post('/login', async (req, res) => {
+    const client = new MongoClient(uri)
+    const {email, password} = req.body
+
+    try {
+        await client.connect()
+        const db = client.db('app-data')
+        const users = db.collection('users')
+
+        const user = await users.findOne({ email })
+
+        const correctPassword = await bcrypt.compare(password, user.hashed_password)
+
+        if (user && correctPassword) {
+            const token = jwt.sign(user, email, {
+                expiresIn: 60 * 12
+            })
+            res.status(201).json({token, userId: user.user_id})
+        }
+
+        res.status(400).json('Invalid Credentials')
 
     } catch (error) {
         console.log(error)
