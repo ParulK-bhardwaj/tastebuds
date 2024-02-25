@@ -1,20 +1,65 @@
-require('dotenv').config();
 const express = require('express');
 const { MongoClient } = require('mongodb');
-const uri = process.env.ATLAS_URI;
+const {v4: uuidv4} = require('uuid');
+const jwt = require('jsonwebtoken');
+const cors = require('cors');
+const bcrypt = require('bcrypt')
+require('dotenv').config();
 
-const PORT = 4000;
-const app = express();
+const uri = process.env.ATLAS_URI
 
+const PORT = 4000
+const app = express()
+app.use(cors())
+app.use(express.json())
+
+// home page
 app.get('/', (req, res) => {
     res.json("Hello check home")
 })
 
-app.post('/signup',(req, res) => {
+// sign up
+app.post('/signup', async(req, res) => {
     const client = new MongoClient(uri)
-    res.json('hello signup')
+    const {email, password} = req.body
+
+    // Generated unique user id
+    const uniqueUserId = uuidv4()
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+    try {
+        await client.connect()
+        const db = client.db('app-data')
+        const users = db.collection('users')
+
+        const existingUser = await users.findOne({email})
+        if (existingUser) {
+            return res.status(409).send('username already exist')
+        }
+
+        const sanitizedEmail = email.toLowerCase()
+
+        const data = {
+            user_id: uniqueUserId,
+            email: sanitizedEmail,
+            hashed_password: hashedPassword
+        }
+
+        const newUser = await users.insertOne(data)
+        const token = jwt.sign(newUser, sanitizedEmail, 
+            {expiresIn: 60 * 24
+        })
+
+        res.status(201).json({ token, user_id: uniqueUserId})
+
+    } catch (error) {
+        console.log(error)
+    } finally {
+        await client.close()
+    }
 })
 
+// get all users
 app.get('/users', async(req, res) => {
     const client = new MongoClient(uri)
     try {
