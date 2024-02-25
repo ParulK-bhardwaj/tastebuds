@@ -1,8 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useCookies } from 'react-cookie';
+import axios from 'axios';
 import Card from '../components/Card';
 import ChatContainer from '../components/ChatContainer';
 
 const Dashboard = () => {
+    const [user, setUser] = useState(null)
+    const [cookies, setCookie, removeCookie] = useCookies(['user'])
+
+    const userId = cookies.UserId;
+    
+    const getUser = async() => {
+        try {
+            const response = await axios.get('http://localhost:4000/user', {
+                params: { userId }
+            })
+            setUser(response.data)
+        } catch(err) {
+            console.log(err)
+        }
+    }
+    console.log('user', user)
+    // One time after the user changes we run the get User method
+    useEffect(() => {
+        getUser()
+    }, []);
+
+    
+   
     const db = [
         { 
             name: 'Richard Hendricks', 
@@ -33,7 +58,7 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard">
-            <ChatContainer />
+            <ChatContainer user={user}/>
             <div className="swipe-container">
                 <div className="card-container">
                     {db.map(character => (
