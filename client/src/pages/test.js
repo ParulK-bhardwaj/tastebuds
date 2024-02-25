@@ -23,6 +23,7 @@ const Dashboard = () => {
         }
     };
 
+    // One time after the user changes we run the get User method
     useEffect(() => {
         getUser();
     }, []);
