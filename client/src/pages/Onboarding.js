@@ -1,10 +1,14 @@
 import { useState } from 'react';
+import { useCookies } from 'react-cookie';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Nav from '../components/Nav';
 
 
 const Onboarding = () => {
-
+    const [cookies, setCookie, removeCookie] = useCookies(['user'])
     const [formData, setFormData] = useState({
+        user_id: cookies.UserId,
         first_name: '',
         last_name: '',
         dob_day: '',
@@ -13,13 +17,29 @@ const Onboarding = () => {
         gender_identity: '',
         show_gender: false,
         dietery: '',
-        cuisine: '',
+        specialized_cuisine: '',
+        preferred_cuisine: '',
         about: '',
-        url: ''
+        favorite_dish: '',
+        url: '',
+        matches: [],
     });
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
+    let navigate = useNavigate();
+
+    const handleSubmit = async(e) => {
+        console.log( 'submitted')
+        // prevent from reloading the form
+        e.preventDefault();
+
+        try {
+            const response = await axios.put('http://localhost:4000/user', { formData })
+            console.log(response)
+            const success = response.status === 200
+            if(success) navigate('/dashboard')
+        } catch (error) {
+            console.log(error)
+        }
     };
 
     const handleChange = (event) => {
@@ -29,13 +49,29 @@ const Onboarding = () => {
     };
 
     const cuisines = [
-        "Chinese", "Italian", "Japanese", "Thai", "Indian", "Mexican",
-        "Greek", "Korean", "French cuisine", "American", "Spanish cuisine",
-        "Vietnamese", "Angolan cuisine", "Australian cuisine", "Lebanese cuisine",
-        "Mediterranean", "Turkish"
+        "American",
+        "Angolan cuisine",
+        "Australian cuisine",
+        "Chinese",
+        "French cuisine",
+        "Greek",
+        "Indian",
+        "Italian",
+        "Japanese",
+        "Korean",
+        "Lebanese cuisine",
+        "Mediterranean",
+        "Mexican",
+        "Spanish cuisine",
+        "Thai",
+        "Turkish",
+        "Vietnamese", 
+        "Desserts",
+        "None",
+        
     ];
 
-    const dieteryOptions = ["Vegetarian", "Vegan", "Non-Vegetarian", "Gluten-free"];
+    const dieteryOptions = ["Vegan", "Vegetarian", "Non-Vegetarian", "Gluten-free", "All"];
 
     return (
         <>

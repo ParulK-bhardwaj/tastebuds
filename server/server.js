@@ -50,7 +50,7 @@ app.post('/signup', async(req, res) => {
             {expiresIn: 60 * 12
         })
 
-        res.status(201).json({ token, user_id: uniqueUserId})
+        res.status(201).json({ token, userId: uniqueUserId})
 
     } catch (error) {
         console.log(error)
@@ -104,6 +104,47 @@ app.get('/users', async(req, res) => {
     } finally {
         await client.close()
     }
+})
+
+// get one user
+
+app.put('/user', async(req, res) => {
+    const client = new MongoClient(uri);
+    const formData = req.body.formData
+
+    console.log(formData)
+    try {
+        await client.connect()
+        const db = client.db('app-data')
+
+        const users = db.collection('users')
+
+        const query = { user_id: formData.user_id }
+        const updateDocument = {
+            $set: {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                dob_day: formData.dob_day,
+                dob_month: formData.dob_month,
+                dob_year: formData.dob_year,
+                gender_identity: formData.gender_identity,
+                show_gender: formData.show_gender,
+                dietery: formData.dietery,
+                specialized_cuisine: formData.specialized_cuisine,
+                preferred_cuisine: formData.preferred_cuisine,
+                about: formData.about,
+                favorite_dish: formData.favorite_dish,
+                url: formData.url,
+                matches: formData.matches
+            },
+        }
+        const newUser = await users.updateOne(query, updateDocument)
+
+        res.send(newUser)
+    } finally {
+        await client.close()
+    }
+
 })
 
 app.listen(PORT, () => {
