@@ -24,7 +24,7 @@ const Dashboard = () => {
     // One time after the user changes we run the get User method
     useEffect(() => {
         getUser()
-    }, []);
+    }, [user]);
 
     
    
@@ -55,6 +55,10 @@ const Dashboard = () => {
     const outOfFrame = name => {
         console.log(name + ' left the screen!');
     };
+
+    if (!user) {
+        return null;
+    }
 
     return (
         <div className="dashboard">
