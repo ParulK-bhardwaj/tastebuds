@@ -3,16 +3,20 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
 
-import {BrowserRouter, Route, Routes} from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Cookies, useCookies } from 'react-cookie';
 
 function App() {
+  const [cookies, setCookie, removeCookie] = useCookies(['user'])
+
+  const authToken = cookies.AuthToken
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home/>}/>
-        <Route path="/dashboard" element={<Dashboard/>}/>
-        <Route path="/onboarding" element={<Onboarding/>}/>
-
+        { authToken &&  <Route path="/dashboard" element={<Dashboard/>}/> }
+        { authToken && <Route path="/onboarding" element={<Onboarding/>}/> }
       </Routes>
     </BrowserRouter>
   );
