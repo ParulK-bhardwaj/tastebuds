@@ -89,18 +89,20 @@ app.post('/login', async (req, res) => {
     }
 })
 
-// get all users
-app.get('/users', async(req, res) => {
+// get preferrred cuisine users
+
+app.get('/cuisine-users', async(req, res) => {
     const client = new MongoClient(uri)
+    const cuisine = req.query.cuisine
+
+    console.log(cuisine)
     try {
         await client.connect()
         const db = client.db('app-data')
-
         const users = db.collection('users')
-
-        const returnedUsers = await users.find().toArray()
-
-        res.send(returnedUsers)
+        const query = { specialized_cuisine : {$eq : cuisine}}
+        const foundUsers = await users.find(query).toArray()
+        res.send(foundUsers)
     } finally {
         await client.close()
     }
