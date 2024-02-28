@@ -82,9 +82,21 @@ const Dashboard = () => {
 
     // Filter out swiped cards
     // const filteredUsers = preferredCuisineUsers ? preferredCuisineUsers.filter(character => !swipedCards.includes(character.user_id)) : [];
+    // const filteredUsers = preferredCuisineUsers
+    // ? preferredCuisineUsers.filter(preferredUser => {
+    //     return !swipedCards.includes(preferredUser.user_id) && preferredUser.user_id !== userId;
+    // })
+    // : [];
+
     const filteredUsers = preferredCuisineUsers
     ? preferredCuisineUsers.filter(preferredUser => {
-        return !swipedCards.includes(preferredUser.user_id) && preferredUser.user_id !== userId;
+        // Check if the user is not swiped and not the current user
+        return (
+            !swipedCards.includes(preferredUser.user_id) &&
+            preferredUser.user_id !== userId &&
+            // Check if the user is not already matched
+            !matchedIdsIncludingCurrentUser.includes(preferredUser.user_id)
+        );
     })
     : [];
 
@@ -102,8 +114,8 @@ const Dashboard = () => {
                             key={preferredUser.first_name + preferredUser.last_name}
                             name={preferredUser.first_name + ' ' + preferredUser.last_name}
                             about={preferredUser.about}
-                            cuisine={preferredUser.cuisine}
-                            favoriteDish={preferredUser.favoriteDish}
+                            cuisine={preferredUser.specialized_cuisine}
+                            favoriteDish={preferredUser.favorite_dish}
                             url={preferredUser.url}
                             onSwipe={(dir) => swiped(dir, preferredUser.user_id)}
                             onCardLeftScreen={() => outOfFrame(preferredUser.first_name + ' ' + preferredUser.last_name)}
