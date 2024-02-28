@@ -67,7 +67,7 @@ const Onboarding = () => {
         "Turkish",
         "Vietnamese", 
         "Desserts",
-        "None",
+        "All",
         
     ];
 

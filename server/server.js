@@ -194,7 +194,6 @@ app.get('/cuisine-users', async(req, res) => {
 app.get('/users', async(req, res) => {
     const client = new MongoClient(uri)
     const userIds = JSON.parse(req.query.userIds)
-    console.log(userIds)
     try {
         await client.connect()
         const db = client.db('app-data')
