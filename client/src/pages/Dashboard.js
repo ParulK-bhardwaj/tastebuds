@@ -7,7 +7,7 @@ import ChatContainer from '../components/ChatContainer';
 const Dashboard = () => {
     const [user, setUser] = useState(null);
     const [swipedCards, setSwipedCards] = useState([]);
-    const [lastDirection, setLastDirection] = useState('');
+    const [lastDirection, setLastDirection] = useState();
     const [preferredCuisineUsers, setPreferredCuisineUsers] = useState(null);
 
     const [cookies, setCookie, removeCookie] = useCookies(['user']);
@@ -30,35 +30,43 @@ const Dashboard = () => {
             const response = await axios.get('http://localhost:4000/cuisine-users', {
                 params: {cuisine: user.preferred_cuisine}
             })
-
-            setPreferredCuisineUsers(response.data)
+            setPreferredCuisineUsers(response.data)     
         } catch (error) {
             console.log(error)
         }
     }
 
+
     useEffect(() => {
-        getUser();
-        getPreferredCuisineUsers();
-    }, [user, preferredCuisineUsers]);
+        getUser()
 
-    console.log(preferredCuisineUsers)
-    // const db = [
-    //     {
-    //         name: 'Richard Hendricks',
-    //         url: 'https://assets.bonappetit.com/photos/5f3bffa3b62c45d85d5245df/master/pass/Stop-Cooking-Like-a-Chef-Meherwan-Irani.jpg',
-    //         about: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    //     },
-    //     {
-    //         name: 'Monica Hall',
-    //         url: 'https://allaboutthecooks.co.uk/wp-content/uploads/2023/03/cropped-cropped-Nisa_profil24.png',
-    //         about: 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    //     },
-    // ];
+    }, [])
 
-    const swiped = (direction, nameSwiped) => {
-        console.log(`You swiped ${direction} on ${nameSwiped}.`);
-        setSwipedCards([...swipedCards, nameSwiped]);
+    useEffect(() => {
+        if (user) {
+            getPreferredCuisineUsers()
+        }
+    }, [user])
+    
+    const updateMatches = async(matchedUserId) => {
+        try {
+            const response = await axios.put('http://localhost:4000/addmatch', {
+                userId,
+                matchedUserId
+            }) 
+            getUser()
+        } catch (error) {
+            console.log(error)
+        }
+    }
+   
+    const swiped = (direction, swipedUserId) => {
+        console.log(`You swiped ${direction} on ${swipedUserId}.`);
+        setSwipedCards([...swipedCards, swipedUserId]);
+           
+        if (direction === 'right') {
+            updateMatches(swipedUserId)
+        }
         setLastDirection(direction);
     };
 
@@ -66,11 +74,21 @@ const Dashboard = () => {
         console.log(name + ' left the screen!');
     };
 
-   
+    console.log('user>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', user)
+    const matchedIdsIncludingCurrentUser = user?.matches.map(({user_id}) => user_id).concat(userId)
+
+    console.log('matchedIdsIncludingCurrentUser _________=========',matchedIdsIncludingCurrentUser)
+    // const filteredUsers = preferredCuisineUsers?.filter(preferredUser => !matchedUserIds.includes(preferredUser.user_id));
 
     // Filter out swiped cards
-    const filteredDB = preferredCuisineUsers ? preferredCuisineUsers.filter(character => !swipedCards.includes(character.first_name + ' ' + character.last_name)) : [];
+    // const filteredUsers = preferredCuisineUsers ? preferredCuisineUsers.filter(character => !swipedCards.includes(character.user_id)) : [];
+    const filteredUsers = preferredCuisineUsers
+    ? preferredCuisineUsers.filter(preferredUser => {
+        return !swipedCards.includes(preferredUser.user_id) && preferredUser.user_id !== userId;
+    })
+    : [];
 
+    console.log('filteredusers-------', filteredUsers)
     if (!user) {
         return null;
     }
@@ -79,16 +97,16 @@ const Dashboard = () => {
             <ChatContainer user={user} />
             <div className="swipe-container">
                 <div className="card-container">
-                    {filteredDB.map(character => (
+                    {filteredUsers.map(preferredUser => (
                         <Card
-                            key={character.first_name + character.last_name}
-                            name={character.first_name + ' ' + character.last_name}
-                            about={character.about}
-                            cuisine={character.cuisine}
-                            favoriteDish={character.favoriteDish}
-                            url={character.url}
-                            onSwipe={(dir) => swiped(dir, character.first_name + ' ' + character.last_name)}
-                            onCardLeftScreen={() => outOfFrame(character.first_name + ' ' + character.last_name)}
+                            key={preferredUser.first_name + preferredUser.last_name}
+                            name={preferredUser.first_name + ' ' + preferredUser.last_name}
+                            about={preferredUser.about}
+                            cuisine={preferredUser.cuisine}
+                            favoriteDish={preferredUser.favoriteDish}
+                            url={preferredUser.url}
+                            onSwipe={(dir) => swiped(dir, preferredUser.user_id)}
+                            onCardLeftScreen={() => outOfFrame(preferredUser.first_name + ' ' + preferredUser.last_name)}
                         />
                     ))}
                     <div className="swipe-info">

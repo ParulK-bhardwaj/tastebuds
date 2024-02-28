@@ -89,25 +89,6 @@ app.post('/login', async (req, res) => {
     }
 })
 
-// get preferrred cuisine users
-
-app.get('/cuisine-users', async(req, res) => {
-    const client = new MongoClient(uri)
-    const cuisine = req.query.cuisine
-
-    console.log(cuisine)
-    try {
-        await client.connect()
-        const db = client.db('app-data')
-        const users = db.collection('users')
-        const query = { specialized_cuisine : {$eq : cuisine}}
-        const foundUsers = await users.find(query).toArray()
-        res.send(foundUsers)
-    } finally {
-        await client.close()
-    }
-})
-
 // get one user
 
 app.put('/user', async(req, res) => {
@@ -165,6 +146,74 @@ app.get('/user', async(req, res) => {
         const user = await users.findOne(query)
 
         res.send(user)
+    } finally {
+        await client.close()
+    }
+})
+
+// Update user with a match
+app.put('/addmatch', async (req, res) => {
+    const client = new MongoClient(uri)
+    const { userId, matchedUserId } = req.body
+
+    try {
+        await client.connect()
+        const db = client.db('app-data')
+        const users = db.collection('users')
+        const query = {user_id: userId}
+
+        const updateDocument = {
+            $push: {matches: {user_id: matchedUserId}}
+        }
+        const user = await users.updateOne(query, updateDocument)
+        res.send(user)
+    } finally {
+        await client.close()
+    }
+}) 
+
+// get preferrred cuisine users
+
+app.get('/cuisine-users', async(req, res) => {
+    const client = new MongoClient(uri)
+    const cuisine = req.query.cuisine
+    try {
+        await client.connect()
+        const db = client.db('app-data')
+        const users = db.collection('users')
+        const query = { specialized_cuisine : {$eq : cuisine}}
+        const foundUsers = await users.find(query).toArray()
+        res.send(foundUsers)
+    } finally {
+        await client.close()
+    }
+})
+
+
+// get all users by the userId
+app.get('/users', async(req, res) => {
+    const client = new MongoClient(uri)
+    const userIds = JSON.parse(req.query.userIds)
+    console.log(userIds)
+    try {
+        await client.connect()
+        const db = client.db('app-data')
+        const users = db.collection('users')
+        const pipeline =
+            [
+                {
+                    '$match': {
+                        'user_id': {
+                            '$in': userIds
+                        }
+                    }
+                }
+            ]
+
+        const foundUsers = await users.aggregate(pipeline).toArray()
+
+        res.json(foundUsers)
+
     } finally {
         await client.close()
     }
